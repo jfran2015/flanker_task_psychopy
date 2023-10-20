@@ -22,5 +22,5 @@ When the script is run you will be prompted to enter a subject number and then y
 
 ---
 
-Feel free to modify and expand upon this template to fit the specifics of your project. A well-documented README is an essential part of any open-source project, as it helps users and potential contributors understand what your project is about and how to work with it.
+Feel free to modify and expand upon this template to fit the specifics of your project.
 
