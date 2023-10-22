@@ -1,4 +1,4 @@
-from psychopy import visual, core
+from psychopy import visual, core, event
 from psychopy.hardware import keyboard
 import pandas as pd
 import random
@@ -96,6 +96,20 @@ def get_response(key_board, max_response_time):
 
     return response, response_time
 
+def instructions(win, arrow_vs_letter):
+    if arrow_vs_letter == 'a':
+        instruction_text = 'In this task you will be shown an array of arrows. You will be asked to respond to the arrow in the center while ignoring the outside arrows. If you see a < arrow in the center respond with the z key and if you see a > arrow in the center respond with the / key.'
+    elif arrow_vs_letter == 'l':
+        instruction_text = 'In this task you will be shown an array of letters. You will be asked to respond to the letter in the center while ignoring the outside letters. If you see a X or C in the center respond with the z key and if you see a V or B in the center respond with the / key.'
+
+    instruction_stim = visual.TextStim(win, text=instruction_text)
+
+    #draw fixation cross
+    instruction_stim.draw()
+    win.flip()
+    # Wait for a key press
+    event.waitKeys()
+
 def main():
     subnum, arrow_vs_letter = user_input()
 
@@ -139,9 +153,9 @@ def main():
     arrow_flankers = trialInfo(arrow_flankers_dict, num_valid_trials, num_invalid_trials)
     letter_flankers = trialInfo(letter_flankers_dict, num_valid_trials, num_invalid_trials)
 
-    if arrow_vs_letter == 'A' or arrow_vs_letter == 'a':
+    if arrow_vs_letter == 'a':
         all_trials_shuffled = arrow_flankers.shuffled_trial_dict
-    elif arrow_vs_letter == 'L' or arrow_vs_letter == 'l':
+    elif arrow_vs_letter == 'l':
         all_trials_shuffled = letter_flankers.shuffled_trial_dict
 
     #set up psychopy window and keyboard
@@ -150,6 +164,9 @@ def main():
 
     #create fixation cross
     fixation_cross = visual.TextStim(win, text='+')
+
+    #present instructions
+    instructions(win, arrow_vs_letter)
 
     for trialnum in range(len(all_trials_shuffled['flanker_text'])):
         #create flanker stim
