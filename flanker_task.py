@@ -12,7 +12,7 @@ class trial_info:
         self.trial_dict = self.full_dict_generator()
         self.shuffled_trial_dict = self.dict_shuffler()
 
-    #this function generates a full (un-shuffled) dictionary containing all trials
+    # This function generates a full (un-shuffled) dictionary containing all trials
     def full_dict_generator(self):
         valid_inds = []
         invalid_inds = []
@@ -47,7 +47,7 @@ class trial_info:
 
         return trial_dict
 
-    #this function shuffles the full dictionary
+    # This function shuffles the full dictionary
     def dict_shuffler(self):
         trial_order = list(range(len(self.trial_dict['flanker_text'])))
         random.shuffle(trial_order)
@@ -119,19 +119,23 @@ def instructions(win, arrow_vs_letter):
 
     instruction_stim = visual.TextStim(win, text=instruction_text)
 
-    #draw fixation cross
     instruction_stim.draw()
     win.flip()
     # Wait for a key press
     event.waitKeys()
 
 def main():
-    subnum = get_subject_number()
+    # Get input in a dialog box for what the subject number is
+    subject_number = get_subject_number()
+    # Get input in a dialog box for what task type (arrow or letter) is desired
     arrow_vs_letter = get_task_choice()
-    output_file_format = "flanker_task_type_{}_subj_{}.csv".format(arrow_vs_letter, subnum)
+    # Using the user input create filename for output file
+    output_file_format = "flanker_task_type_{}_subj_{}.csv".format(arrow_vs_letter, subject_number)
 
+    # Create structure for the output file
     data = pd.DataFrame({
-        'subnum': [],
+        'subject_number': [],
+        'trial_number': [],
         'flanker_text': [],
         'congruency': [],
         'direction': [],
@@ -140,12 +144,14 @@ def main():
         'Accuracy': []
     })
 
+    # Create dictionary for arrow flanker task
     arrow_flankers_dict = {
         'flanker_text': ["< < < < <", "< < > < <", "> > > > >", "> > < > >"],
         'congruency': [0, 1, 0, 1], #i have this backwards coded 1 = incongruent and 0 = congruent
         'center_direction': [1, 0, 0, 1]
     }
 
+    # Create dictionary for letter flanker task
     letter_flankers_dict = {
         'flanker_text':    ["X X X X X", "X X C X X", "X X V X X", "X X B X X", 
                             "C C X C C", "C C C C C", "C C V C C", "C C B C C",
@@ -161,14 +167,16 @@ def main():
                                 1, 1, 0, 0]
     }
 
-    #set number of trials of each type that is desired
+    # Set number of trials of each type that is desired
     num_valid_trials = 80
     num_invalid_trials = 20
 
+    # Create instances of the trial_info class. This could be done only once for the version 
+    # desired but it isn't too computationally intensive so I will just do both
     arrow_flankers = trial_info(arrow_flankers_dict, num_valid_trials, num_invalid_trials)
     letter_flankers = trial_info(letter_flankers_dict, num_valid_trials, num_invalid_trials)
 
-    #set up psychopy window and keyboard
+    # Set up psychopy window and keyboard
     win = visual.Window([800, 600], monitor="testMonitor", units="deg")
     kb = keyboard.Keyboard()
 
@@ -177,22 +185,22 @@ def main():
     elif arrow_vs_letter == 'l':
         all_trials_shuffled = letter_flankers.shuffled_trial_dict
 
-    #create fixation cross
+    # Create fixation cross
     fixation_cross = visual.TextStim(win, text='+')
 
-    #present instructions
+    # Present instructions
     instructions(win, arrow_vs_letter)
 
-    for trialnum in range(len(all_trials_shuffled['flanker_text'])):
-        #create flanker stim
-        flanker_stim = visual.TextStim(win, text=all_trials_shuffled['flanker_text'][trialnum])
+    for trial_number in range(len(all_trials_shuffled['flanker_text'])):
+        # Create flanker stim
+        flanker_stim = visual.TextStim(win, text=all_trials_shuffled['flanker_text'][trial_number])
 
-        #draw fixation cross
+        # Draw fixation cross
         fixation_cross.draw()
         win.flip()
         core.wait(0.5)
 
-        #draw flanker stim
+        # Draw flanker stim
         flanker_stim.draw()
         win.flip()
 
@@ -203,21 +211,22 @@ def main():
             # Participant pressed 'z'
             print("Z key pressed.")
             print(response_time)
-            response_correct = 1 if all_trials_shuffled['center_direction'][trialnum] == 1 else 0
+            response_correct = 1 if all_trials_shuffled['center_direction'][trial_number] == 1 else 0
         elif response == 'slash':
             # Participant pressed '/'
             print("/ key pressed")
             print(response_time)
-            response_correct = 1 if all_trials_shuffled['center_direction'][trialnum] == 0 else 0
+            response_correct = 1 if all_trials_shuffled['center_direction'][trial_number] == 0 else 0
         else:
             # No response within the specified time
             print("No response")
             response_correct = -1
 
-        data.loc[len(data.index)] = [subnum,
-                                    all_trials_shuffled['flanker_text'][trialnum],
-                                    all_trials_shuffled['congruency'][trialnum], 
-                                    all_trials_shuffled['center_direction'][trialnum],
+        data.loc[len(data.index)] = [subject_number,
+                                    trial_number,
+                                    all_trials_shuffled['flanker_text'][trial_number],
+                                    all_trials_shuffled['congruency'][trial_number], 
+                                    all_trials_shuffled['center_direction'][trial_number],
                                     response_time,
                                     response,
                                     response_correct]
