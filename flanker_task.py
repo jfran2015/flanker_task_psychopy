@@ -1,10 +1,10 @@
-from psychopy import visual, core, event
+from psychopy import visual, core, event, gui
 from psychopy.hardware import keyboard
 import pandas as pd
 import random
 import math
 
-class trialInfo:
+class trial_info:
     def __init__(self, input_dict, num_valid_trials, num_invalid_trials):
         self.input_dict = input_dict
         self.num_valid_trials = num_valid_trials
@@ -60,22 +60,37 @@ class trialInfo:
 
         return shuffled_trial_dict
 
-def user_input():
-    while True:
-        subnum = input("Enter subject number: ")
-        if subnum.isdigit():
-            break
-        else:
-            print("Please enter a valid number for subject number.")
+def get_subject_number():
+    dlg = gui.Dlg(title="Subject Information")
+    dlg.addField("Subject Number:")
 
     while True:
-        arrow_vs_letter = input("Would you like to run an Arrow (A) or Letter (L) flanker task: ").lower()
-        if arrow_vs_letter in ['l', 'a']:
-            break
+        dlg.show()
+        if dlg.OK:
+            subject_number = dlg.data[0]
+            if type(subject_number) == int or float:
+                return subject_number
+            else:
+                dlg.data = []  # Clear the input field
+                dlg.error("Please enter a valid number.")
         else:
-            print("Please enter 'A' for Arrow or 'L' for Letter.")
+            core.quit()
 
-    return subnum, arrow_vs_letter
+def get_task_choice():
+    dlg = gui.Dlg(title="Task Choice")
+    dlg.addField("Arrow or Letter (A or L):", tip="Enter 'A' for Arrow or 'L' for Letter")
+
+    while True:
+        dlg.show()
+        if dlg.OK:
+            task_choice = dlg.data[0].strip().lower()
+            if task_choice in ['a', 'l']:
+                return task_choice
+            else:
+                dlg.data = []  # Clear the input field
+                dlg.error("Please enter 'A' for Arrow or 'L' for Letter.")
+        else:
+            core.quit()
 
 def get_response(key_board, max_response_time):
     response = None
@@ -111,8 +126,8 @@ def instructions(win, arrow_vs_letter):
     event.waitKeys()
 
 def main():
-    subnum, arrow_vs_letter = user_input()
-
+    subnum = get_subject_number()
+    arrow_vs_letter = get_task_choice()
     output_file_format = "flanker_task_type_{}_subj_{}.csv".format(arrow_vs_letter, subnum)
 
     data = pd.DataFrame({
@@ -150,17 +165,17 @@ def main():
     num_valid_trials = 80
     num_invalid_trials = 20
 
-    arrow_flankers = trialInfo(arrow_flankers_dict, num_valid_trials, num_invalid_trials)
-    letter_flankers = trialInfo(letter_flankers_dict, num_valid_trials, num_invalid_trials)
+    arrow_flankers = trial_info(arrow_flankers_dict, num_valid_trials, num_invalid_trials)
+    letter_flankers = trial_info(letter_flankers_dict, num_valid_trials, num_invalid_trials)
+
+    #set up psychopy window and keyboard
+    win = visual.Window([800, 600], monitor="testMonitor", units="deg")
+    kb = keyboard.Keyboard()
 
     if arrow_vs_letter == 'a':
         all_trials_shuffled = arrow_flankers.shuffled_trial_dict
     elif arrow_vs_letter == 'l':
         all_trials_shuffled = letter_flankers.shuffled_trial_dict
-
-    #set up psychopy window and keyboard
-    win = visual.Window([800, 600], monitor="testMonitor", units="deg")
-    kb = keyboard.Keyboard()
 
     #create fixation cross
     fixation_cross = visual.TextStim(win, text='+')
